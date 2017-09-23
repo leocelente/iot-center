@@ -1,0 +1,134 @@
+
+// // REUTURNS THE DEVICES ARRAY
+// app.get('/devices', (req, res) => {
+//   Device.find({}, (err, devices) => {
+//     if (err) throw err;
+//     res.send(devices);
+//   });
+// });
+// // GET /DEVICE - SAVE NEW DEVICE
+// app.post('/device', (req, res) => {
+//   console.log(req.body);
+//   const device = new Device({
+//     name: req.body.name,
+//     ip: req.body.ip,
+//     role: req.body.role,
+//     description: req.body.description,
+//   });
+//   device.save(err => {
+//     if (err) throw err;
+//     console.log("[*] - Device Saved on Database");
+//     io.emit('update', {});
+//     res.send(device);
+//   });
+// });
+
+// // DELETES A DEVICE
+// app.delete('/device', (req, res) => {
+//   // console.log(req.query);
+//   Device.find({ _id: req.query.id }).remove(data => res.send);
+//   io.emit('update', {});
+//   console.log(`Deleting a device : ${req.query.id}`);
+// });
+
+// // RETURNS THE INPUTS ARRAY
+// app.get('/inputs', (req, res) => {
+//   Input.find({}, (err, inputs) => {
+//     if (err) throw err;
+//     res.send(inputs);
+//   });
+// });
+
+// // SAVES A NEW INPUT
+// app.post('/inputs', (req, res) => {
+//   // console.log(req.body);
+//   const input = new Input({
+//     name: req.body.name,
+//     ip: req.body.ip,
+//     role: req.body.role,
+//     description: req.body.description,
+//     outputs: []
+//   });
+//   input.save(err => {
+//     if (err) throw err;
+//     console.log("[*] - Input Saved on Database");
+//     io.emit('update', {});
+//     res.send(input);
+//   });
+// });
+
+// // TRIGGERS A ACTION(S) WITH 'CONDITION' IN INPUT WITH 'IP'
+// app.get('/input/:ip/:condition', (req, res) => {
+//   console.log("[*] - New Action!")
+//   const { ip, condition } = req.params;
+//   console.log(`With param: ${ip} and ${condition}`);
+//   Input.find({ ip }, (err, inputList) => {
+//     if (err) throw err;
+//     const input = inputList[0];
+//     console.log("[*] - Input: ", input.name);
+//     const id = input._id;
+//     const actions = input.outputs.filter(item => {
+//       return item.condition == condition;
+//     });
+//     if (!actions) res.send("No such Action on input");
+
+//     actions.forEach(function (action) {
+//       console.log("[*] - Executing Action: ", action);
+//       axios.get(action.request)
+//         .then(response => {
+//           console.log('[*] - Done ', response.data);
+//           response.msg = "Thsi is how we do";
+//           res.send(response.data);
+//         })
+//         .catch(error => {
+//           console.log("A terrible error ocurred");
+//           res.send(error);
+//         });
+//     });
+//   });
+// });
+
+// app.post('/input/output', (req, res) => {
+//   const { id, request, condition } = req.body;
+//   Input.findById(id, (err, input) => {
+//     if (err || !input) throw err;
+
+//     console.log(typeof input.outputs);
+//     console.log(input);
+//     const oldCopy = input.outputs;
+//     oldCopy.push({ request, condition, _id: new Date().getTime()});
+//     input.outputs = oldCopy;
+//     // input.outputs = [];
+//     console.log(`[*] - New Output: ${condition} on Input: ${id}`);
+//     input.save(function (err, updated) {
+//       if (err) throw err;
+//       io.emit('update', {});
+//       res.send(updated);
+//     });
+
+//   });
+// });
+
+// app.delete('/input/output', (req, res) => {
+//   const { input_id, output_id } = req.query;
+//   Input.findById(input_id, (err, input)=>{
+//     // let input = inputList[0];
+//     let newArray = [];
+//     input.outputs.forEach((o, i, a)=>{
+//       if(o._id == output_id) {
+//         console.log("[*] - FOUND: " + o._id);
+//         a.splice(i, 1);
+//         newArray = a;
+//       }
+//     })
+//     input.outputs = newArray;
+//     // input.outputs = [];
+//     console.log(`[*] - DELETED! `);
+//     input.save(function (err, updated) {
+//       if (err) throw err;
+//       io.emit('update', {});
+//       res.send(updated);
+//     });
+//   });
+
+// });

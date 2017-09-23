@@ -1,0 +1,21 @@
+{
+  "name": "iot-server",
+  "version": "1.0.0",
+  "description": "the server that controls the mesh",
+  "main": "index.js",
+  "scripts": {
+    "test": "\"\"",
+    "start": "nodemon index.js && ls views"
+  },
+  "author": "leocelente",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.16.2",
+    "body-parser": "^1.18.1",
+    "cors": "^2.8.4",
+    "express": "^4.15.4",
+    "mongoose": "^4.11.11",
+    "nodemon": "^1.12.0",
+    "socket.io": "^2.0.3"
+  }
+}
