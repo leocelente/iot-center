@@ -65,6 +65,11 @@ app.get('/handshake', (req, res) => {
 });
 
 
+app.get('/trigger', (req, res)=>{
+  const { ip } = req.query;
+  Trigger.find()
+});
+
 // START TRIGGERS
 app.get('/triggers', (req, res) => {
   Trigger.find({}, (err, triggers) => {

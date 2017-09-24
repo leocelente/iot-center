@@ -7,13 +7,13 @@
         <i class="fa fa-plus" aria-hidden="true"></i> Input</li>
       <li class="c-nav__item c-nav__item--right" @click="showOutputModal()">
         <i class="fa fa-plus" aria-hidden="true"></i> Output</li>
-      <li class="c-nav__item c-nav__item--right" @click="newDeviceStatus = true">
+      <li class="c-nav__item c-nav__item--right" @click="showTriggersModal()">
         <i class="fa fa-plus" aria-hidden="true"></i> Trigger</li>
     </ul>
     <!-- END MENU -->
     <div>
       <div v-if="triggersModal">
-        <ManageTriggersModal @onclose="closeTriggersModal()"></ManageTriggersModal>
+        <ManageTriggersModal :inputs="inputs" :outputs="outputs" :triggers="triggers" @onclose="closeTriggersModal()"></ManageTriggersModal>
       </div>
       <div v-if="inputModal">
         <AddInputModal :input="currentInput" @onclose="closeInputModal()"></AddInputModal>
@@ -46,25 +46,50 @@ export default {
     return {
       outputs: [],
       inputs: [],
+      triggers: [],
       inputModal: false,
       outputModal: false,
       triggersModal: false,
       currentInput: {},
-      currentOutput: {}
+      currentOutput: {},
+      serverURL: "http://localhost:8877"
     }
   },
   methods: {
-    fetchInputs() {
-      axios.get("http://localhost:8877/inputs")
-        .then(({ data }) => {
-          this.inputs = data;
+    fetch() {
+      const promises = [
+        axios.get(this.serverURL + '/inputs'),
+        axios.get(this.serverURL + '/triggers'),
+        axios.get(this.serverURL + '/outputs')
+      ];
+      Promise.all(promises)
+        .then((res) => {
+          console.log(res);
+          this.inputs = res[0].data;
+          this.triggers = res[1].data;
+          this.outputs = res[2].data;
         }).catch(err => console.log(err));
     },
-    fetchOutputs() {
-      axios.get("http://localhost:8877/outputs")
-        .then(({ data }) => {
+    fetchOutputs(){
+      axios.get(this.serverURL + '/outputs')
+        .then(({data})=>{
+          console.log(data);
           this.outputs = data;
-        }).catch(err => console.log(err));
+        }).catch(err=>console.log(err));
+    },
+    fetchInputs(){
+      axios.get(this.serverURL + '/inputs')
+        .then(({data})=>{
+          console.log(data);
+          this.inputs = data;
+        }).catch(err=>console.log(err));
+    },
+    fetchTriggers(){
+      axios.get(this.serverURL + '/triggers')
+        .then(({data})=>{
+          console.log(data);
+          this.triggers = data;
+        }).catch(err=>console.log(err));
     },
     showInputModal() {
       this.inputModal = true;
@@ -87,11 +112,11 @@ export default {
   },
 
   created() {
-    this.fetchInputs();
-    this.fetchOutputs();
-    const socket = new io("http://localhost:8877");
+    this.fetch();
+    const socket = new io(this.serverURL);
     socket.on('update:outputs', this.fetchOutputs);
     socket.on('update:inputs', this.fetchInputs);
+    socket.on('update:triggers', this.fetchTriggers);
     socket.on('new:input', this.showInputModal);
     socket.on('new:output', this.showOutputModal);
   }
