@@ -21,8 +21,8 @@
             <div class="c-input-group">
                 <button class="c-button c-button--block c-button--ghost-error" @click="remove()">
                     <i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
-                <button class="c-button c-button--block c-button--brand">
-                    <i class="fa fa-bolt" aria-hidden="true"></i> Trigger</button>
+                <!-- <button class="c-button c-button--block c-button--brand">
+                    <i class="fa fa-bolt" aria-hidden="true"></i> Trigger</button> -->
             </div>
         </footer>
     </div>

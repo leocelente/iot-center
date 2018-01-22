@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const mongoose = require('mongoose');
-const path = require('path');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const axios = require('axios');
+const mongoose = require("mongoose");
+const path = require("path");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const axios = require("axios");
 
 // DECLARES GLOBAL VARIABLES
 let Output;
@@ -33,147 +33,177 @@ const InputSchema = mongoose.Schema({
 });
 
 const TriggerSchema = mongoose.Schema({
-  input: Object,
-  outputs: Array,
+  input: String,
+  output: String,
+  output_payload: String,
   condition: String
 });
 
 // INSTACIATES SCHEMAS MODELS
-Output = mongoose.model('Output', OutputSchema);
-Input = mongoose.model('Input', InputSchema);
-Trigger = mongoose.model('trigger', TriggerSchema);
+Output = mongoose.model("Output", OutputSchema);
+Input = mongoose.model("Input", InputSchema);
+Trigger = mongoose.model("trigger", TriggerSchema);
 
 // STARTS THE DATABASE
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function () {
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", function() {
   console.log("[*] - CONNECTED TO DATABASE");
 });
 
 // Express Config
 app.use(cors());
 app.use(bodyParser.json());
-app.use('/', express.static('client/dist'));
+app.use("/", express.static("client/dist"));
 
-
-// BROADCASTS THE HANDSHAKE 
-app.get('/handshake', (req, res) => {
-  const ip = req.connection.remoteAddress.split(':')[3];
+// BROADCASTS THE HANDSHAKE
+app.get("/handshake", (req, res) => {
+  const ip = req.connection.remoteAddress.split(":")[3];
   const { role, type } = req.query;
 
-  io.emit('new:' + type, { role, ip });
+  io.emit("new:" + type, { role, ip });
   console.log(`[*] - Found new Device! : ${role} @ ${ip}`);
-  res.send("OK")
+  res.send("OK");
 });
 
-
-app.get('/trigger', (req, res)=>{
-  const { ip } = req.query;
-  Trigger.find()
+// /trigger?input= <input_id> & payload = <payload>
+app.post("/trigger", (req, res) => {
+  const { input, payload } = req.body;
+  Trigger.find({ input }, (err, triggers) => {
+    if (err) {
+      res.send(err);
+      throw err;
+    }
+    triggers.forEach(trigger => {
+      if (eval(payload.toString() + trigger.condition)) {
+        Output.findById(trigger.output, (err, output) => {
+          if (err) {
+            res.send(err);
+            throw err;
+          }
+          axios
+            .get(
+              `http://${output.ip}/${output.role}?payload=${
+                trigger.output_payload
+              }`
+            )
+            .then(({ data }) => {
+              res.send(data);
+            })
+            .catch(err => res.send(err));
+        });
+      }
+    });
+  });
 });
 
 // START TRIGGERS
-app.get('/triggers', (req, res) => {
+app.get("/triggers", (req, res) => {
   Trigger.find({}, (err, triggers) => {
     res.send(triggers);
   });
 });
 
-app.post('/triggers', (req, res) => {
+app.post("/triggers", (req, res) => {
   const trigger = new Trigger(req.body);
-  trigger.save((err => {
-    if (err) { res.send(err); throw err; }
+  trigger.save(err => {
+    if (err) {
+      res.send(err);
+      throw err;
+    }
     res.send(trigger);
-  }));
-  io.emit('update:triggers')
+  });
+  io.emit("update:triggers");
 });
 
-app.delete('/triggers', (req, res) => {
+app.delete("/triggers", (req, res) => {
   const { id } = req.query;
   Trigger.findByIdAndRemove(id, (err, trigger) => {
     res.send(trigger);
   });
-  io.emit('update:triggers');
+  io.emit("update:triggers");
 });
 
-app.put('/triggers', (req, res) => {
+app.put("/triggers", (req, res) => {
   const { id, data } = req.body;
   Trigger.findAndUpdate(id, data, (err, trigger) => {
     res.send(trigger);
   });
-  io.emit('update:triggers')
+  io.emit("update:triggers");
 });
 
 // END TRIGGERS
 
-
 // START DEVICES
-app.get('/outputs', (req, res) => {
+app.get("/outputs", (req, res) => {
   Output.find({}, (err, outputs) => {
     res.send(outputs);
   });
 });
 
-app.post('/outputs', (req, res) => {
+app.post("/outputs", (req, res) => {
   const output = new Output(req.body);
-  output.save((err => {
-    if (err) { res.send(err); throw err; }
-    res.send(output);
-  }));
-  io.emit('update:outputs');
-});
-
-app.delete('/outputs', (req, res) => {
-  const { id } = req.query;
-  Output.findByIdAndRemove(id, (err, output)=>{
+  output.save(err => {
+    if (err) {
+      res.send(err);
+      throw err;
+    }
     res.send(output);
   });
-  io.emit('update:outputs');
+  io.emit("update:outputs");
 });
 
-app.put('/outputs', (req, res) => {
+app.delete("/outputs", (req, res) => {
+  const { id } = req.query;
+  Output.findByIdAndRemove(id, (err, output) => {
+    res.send(output);
+  });
+  io.emit("update:outputs");
+});
+
+app.put("/outputs", (req, res) => {
   const { id, data } = req.body;
   Output.findAndUpdate(id, data, (err, output) => {
     res.send(output);
   });
-  io.emit('update:outputs');
+  io.emit("update:outputs");
 });
 // END DEVICES
 
-
 // START INPUTS
-app.get('/inputs', (req, res) => {
+app.get("/inputs", (req, res) => {
   Input.find({}, (err, inputs) => {
     res.send(inputs);
   });
-
 });
 
-app.post('/inputs', (req, res) => {
+app.post("/inputs", (req, res) => {
   const input = new Input(req.body);
-  input.save((err => {
-    if (err) { res.send(err); throw err; }
-    res.send(input);
-  }));
-  io.emit('update:inputs')
-});
-
-app.delete('/inputs', (req, res) => {
-  const { id } = req.query;
-  Input.findByIdAndRemove(id, (err, input)=>{
+  input.save(err => {
+    if (err) {
+      res.send(err);
+      throw err;
+    }
     res.send(input);
   });
-  io.emit('update:inputs');
+  io.emit("update:inputs");
 });
 
-app.put('/inputs', (req, res) => {
+app.delete("/inputs", (req, res) => {
+  const { id } = req.query;
+  Input.findByIdAndRemove(id, (err, input) => {
+    res.send(input);
+  });
+  io.emit("update:inputs");
+});
+
+app.put("/inputs", (req, res) => {
   const { id, data } = req.body;
   Input.findAndUpdate(id, data, (err, input) => {
     res.send(input);
   });
-  io.emit('update:devices');
+  io.emit("update:devices");
 });
 // END INPUTS
-
 
 // SETUPS THE SERVER
 const server = app.listen(8877, () => {
@@ -181,4 +211,4 @@ const server = app.listen(8877, () => {
 });
 
 // STARTS THE RT SERVER
-io = require('socket.io')(server);
+io = require("socket.io")(server);

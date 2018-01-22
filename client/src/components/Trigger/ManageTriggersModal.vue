@@ -23,9 +23,9 @@
                         <tbody class="c-table__body">
                             <tr class="c-table__row" v-for="trigger in triggers" :key="trigger._id">
                                 <!-- <td class="c-table__cell">{{trigger._id}}</td> -->
-                                <td class="c-table__cell">{{parseInput(trigger.input.ip)}}</td>
-                                <td class="c-table__cell">{{parseEvent(trigger.input.event)}}</td>
-                                <td class="c-table__cell">{{parseOutput(trigger.outputs)}}</td>
+                                <td class="c-table__cell">{{parseInput(trigger.input)}}</td>
+                                <td class="c-table__cell">{{trigger.condition}}</td>
+                                <td class="c-table__cell">{{parseOutput(trigger)}}</td>
                                 <td class="c-table__cell">
                                     <button class="c-button c-button--brand" @click="spark(trigger)">
                                         <i class="fa fa-bolt"></i> Trigger</button>
@@ -40,21 +40,12 @@
                 <footer class="c-card__footer">
                     <div class="c-input-group">
                         <div class="o-field">
-                            <select class="c-field" v-model="ip">
-                                <option :value="dev.ip" v-for="dev in devices.inputs" :key="dev._id">{{dev.name}}</option>
+                            <select class="c-field" v-model="input_id">
+                                <option :value="dev._id" v-for="dev in devices.inputs" :key="dev._id">{{dev.name}}</option>
                             </select>
                         </div>    
                         <div class="o-field">
-                            <select name="" id="" class="c-field" v-model="operator">
-                                <option value="=">equal</option>
-                                <option value="<">less than</option>
-                                <option value=">">more than</option>
-                                <option value="<=">less or equal than</option>
-                                <option value=">=">more or equal than</option>
-                            </select>
-                        </div>
-                        <div class="o-field">
-                            <input class="c-field" type="number" name="" v-model="threshold" id="">
+                            <input class="c-field" type="text" name="" v-model="condition" id="">
                         </div>
                         <div class="o-field">
                             <select class="c-field" v-model="output_id">
@@ -62,7 +53,7 @@
                             </select>
                         </div>
                         <div class="o-field">
-                            <input type="text" class="c-field" v-model="output_data">
+                            <input type="text" class="c-field" v-model="output_payload">
                         </div>
                         <button class="c-button c-button--brand" @click="add()">
                             <i class="fa fa-plus"></i> Add</button>
@@ -87,37 +78,23 @@ export default {
     data() {
         return {
             condition: "",
-            ip: "",
+            input_id: "",
             output_id: "",
-            threshold: "",
-            operator: "",
-            output_data: ""
+            output_payload: ""
 
         }
     },
     computed: {
         ...mapGetters({devices: 'getDevices', triggers: 'getTriggers'}),
-        data: ()=>{
-            return (this.output_data);
-        }
     },
     methods: {
         add() {
-            const {ip, condition, operator, threshold, data, output_id} = this;
+            const { input_id, condition, output_id, output_payload } = this;
             axios.post(SERVER_URL + '/triggers', {
-                input: {
-                    ip,
-                    event: {
-                        operator,
-                        threshold
-                    }
-                },
-                outputs: [
-                    {
-                        _id: output_id,
-                        data
-                    }
-                ]
+                input: input_id,
+                output: output_id,
+                output_payload,
+                condition
             }).then(({data})=>{
                 console.log(data);
             }).catch(err=>console.log(err));
@@ -129,37 +106,28 @@ export default {
                         console.log(data);
                     }).catch(err=>console.log(err));
         },
-        parseEvent({ value, operator, threshold }) {
-            if (this.devices.inputs.length > 0) {
-                return `${operator} ${threshold}`;
-            } else {
-                return '';
-            }
-        },
-        parseOutput(outputs) {
-            if (this.devices.outputs.length > 0) {
-                let parsed = [];
+        parseOutput(trigger) {
+            const {output, output_payload} = trigger;
+            console.log(trigger)
+            if (this.devices.outputs) {
+                let parsed ={};
                 this.devices.outputs.forEach(inDb => {
-                    outputs.forEach(inTrigger => {
-                        if (inTrigger._id == inDb._id) {
-                            parsed.push(inDb);
+                    console.log(inDb._id, output)
+                        if (output == inDb._id) {
+                            
+                            parsed = inDb;
                         }
-                    })
-                });
-                let ret = "";
-                parsed.forEach(out => {
-                    ret += out.name + ", ";
-                })
-                return ret;
+                }); 
+                return `${parsed.name}(${output_payload})`;
             } else {
                 return ""
             }
         },
-        parseInput(ip) {
-            if (this.devices.inputs.length > 0) {
+        parseInput(id) {
+            if (this.devices.inputs) {
                 let parsed = {};
                 this.devices.inputs.forEach(inDb => {
-                    if (ip == inDb.ip) {
+                    if (id == inDb._id) {
                         parsed = inDb;
                     }
                 });
@@ -169,8 +137,10 @@ export default {
                 return ""
             }
         },
-        spark(req) {
-            console.log(req)
+        spark({input}) {
+            const payload = prompt("What payload to send with trigger? ");
+            if(!payload) return;
+            axios.post(SERVER_URL + '/trigger', {input, payload})
         },
         close() {
             this.$emit("onclose");

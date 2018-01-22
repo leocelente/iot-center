@@ -20,8 +20,8 @@
                 <div class="c-input-group">
                     <button class="c-button c-button--block c-button--ghost-error" @click="remove()">
                         <i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
-                    <button class="c-button c-button--block c-button--brand">
-                        <i class="fa fa-sliders" aria-hidden="true"></i> Control</button>
+                    <!-- <button class="c-button c-button--block c-button--brand">
+                        <i class="fa fa-sliders" aria-hidden="true"></i> Control</button> -->
                 </div>
             </footer>
         </div>

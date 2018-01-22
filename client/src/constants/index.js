@@ -10,6 +10,7 @@ export const INPUT_TYPES = [
   { role: "button", name: "Button" },
   { role: "pir", name: "Motion Sensor" },
   { role: "temperature", name: "Temperature Sensor (K)" },
+  { role: "ldr", name: "Light Sensor" },
   { role: "rfid", name: "RFID Reader" },
   { role: "distance", name: "Ultrasonic Distance Sensor" },
   { role: "gps", name: "GPS" }
