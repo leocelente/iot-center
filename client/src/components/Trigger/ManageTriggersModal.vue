@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="c-overlay" @click="close()"></div>
+        <div class="c-overlay c-overlay--visible" @click="close()"></div>
         <div class="o-modal">
             <div class="c-card">
                 <header class="c-card__header">
@@ -27,7 +27,7 @@
                                 <td class="c-table__cell">{{parseEvent(trigger.input.event)}}</td>
                                 <td class="c-table__cell">{{parseOutput(trigger.outputs)}}</td>
                                 <td class="c-table__cell">
-                                    <button class="c-button c-button--brand" @click="trigger(trigger)">
+                                    <button class="c-button c-button--brand" @click="spark(trigger)">
                                         <i class="fa fa-bolt"></i> Trigger</button>
                                     <button class="c-button c-button--error" @click="remove(trigger)">
                                         <i class="fa fa-trash"></i> Delete</button>
@@ -41,7 +41,7 @@
                     <div class="c-input-group">
                         <div class="o-field">
                             <select class="c-field" v-model="ip">
-                                <option :value="dev.ip" v-for="dev in inputs" :key="dev._id">{{dev.name}}</option>
+                                <option :value="dev.ip" v-for="dev in devices.inputs" :key="dev._id">{{dev.name}}</option>
                             </select>
                         </div>    
                         <div class="o-field">
@@ -58,7 +58,7 @@
                         </div>
                         <div class="o-field">
                             <select class="c-field" v-model="output_id">
-                                <option :value="dev._id" v-for="dev in outputs" :key="dev._id">{{dev.name}}</option>
+                                <option :value="dev._id" v-for="dev in devices.outputs" :key="dev._id">{{dev.name}}</option>
                             </select>
                         </div>
                         <div class="o-field">
@@ -80,11 +80,12 @@
 
 <script>
 import axios from 'axios';
+import { mapGetters } from 'vuex';
+import { SERVER_URL } from './../../constants';
+
 export default {
-    props: ['inputs', 'outputs', 'triggers'],
     data() {
         return {
-            serverURL: "http://localhost:8877/",
             condition: "",
             ip: "",
             output_id: "",
@@ -95,6 +96,7 @@ export default {
         }
     },
     computed: {
+        ...mapGetters({devices: 'getDevices', triggers: 'getTriggers'}),
         data: ()=>{
             return (this.output_data);
         }
@@ -102,7 +104,7 @@ export default {
     methods: {
         add() {
             const {ip, condition, operator, threshold, data, output_id} = this;
-            axios.post(this.serverURL + 'triggers', {
+            axios.post(SERVER_URL + '/triggers', {
                 input: {
                     ip,
                     event: {
@@ -122,23 +124,22 @@ export default {
         },
         remove (trigger){
             if(window.confirm("Are you sure"))
-                axios.delete(this.serverURL+ 'triggers?id='+trigger._id)
+                axios.delete(SERVER_URL+ '/triggers?id='+trigger._id)
                     .then(({data})=>{
                         console.log(data);
                     }).catch(err=>console.log(err));
         },
         parseEvent({ value, operator, threshold }) {
-            if (this.inputs.length > 0) {
+            if (this.devices.inputs.length > 0) {
                 return `${operator} ${threshold}`;
             } else {
                 return '';
             }
         },
         parseOutput(outputs) {
-            console.log(outputs);   
-            if (this.outputs.length > 0) {
+            if (this.devices.outputs.length > 0) {
                 let parsed = [];
-                this.outputs.forEach(inDb => {
+                this.devices.outputs.forEach(inDb => {
                     outputs.forEach(inTrigger => {
                         if (inTrigger._id == inDb._id) {
                             parsed.push(inDb);
@@ -155,9 +156,9 @@ export default {
             }
         },
         parseInput(ip) {
-            if (this.inputs.length > 0) {
+            if (this.devices.inputs.length > 0) {
                 let parsed = {};
-                this.inputs.forEach(inDb => {
+                this.devices.inputs.forEach(inDb => {
                     if (ip == inDb.ip) {
                         parsed = inDb;
                     }
@@ -168,8 +169,8 @@ export default {
                 return ""
             }
         },
-        trigger(req) {
-
+        spark(req) {
+            console.log(req)
         },
         close() {
             this.$emit("onclose");

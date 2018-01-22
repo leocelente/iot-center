@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "\"\"",
-    "start": "nodemon index.js && ls views"
+    "start": "node index.js && ls views"
   },
   "author": "leocelente",
   "license": "ISC",

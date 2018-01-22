@@ -62,6 +62,7 @@ app.get('/handshake', (req, res) => {
 
   io.emit('new:' + type, { role, ip });
   console.log(`[*] - Found new Device! : ${role} @ ${ip}`);
+  res.send("OK")
 });
 
 

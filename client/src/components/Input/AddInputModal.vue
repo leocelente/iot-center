@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="c-overlay" @click="close()"></div>
+        <div class="c-overlay c-overlay--visible" @click="close()"></div>
         <div class="o-modal">
             <div class="c-card">
                 <header class="c-card__header">
@@ -20,8 +20,7 @@
                         <div class="o-form-element">
                             <label class="c-label" for="nickname">Role:</label>
                             <select class="c-field" v-model="role">
-                                <option value="button">Button</option>
-                                <option value="temperature">Temperature</option>
+                                <option :key="t.role" :value="t.role" v-for="t of types">{{t.name}}</option>
                             </select>
                         </div>
                         <div class="o-form-element">
@@ -41,6 +40,7 @@
 
 <script>
 import axios from 'axios';
+import { SERVER_URL, INPUT_TYPES } from './../../constants';
 
 export default {
     props: ['input'],
@@ -50,6 +50,7 @@ export default {
             ip: "",
             role: "",
             description: "",
+            types: INPUT_TYPES
         }
     },
     methods: {
@@ -58,7 +59,7 @@ export default {
         },
         add(){
             const { ip, name, role, description } = this;
-            axios.post("http://localhost:8877/inputs", { ip, name, role, description })
+            axios.post(SERVER_URL + "/inputs", { ip, name, role, description })
                 .then(({data})=>{
                     console.log(data);
                 }).catch(err=>console.log(err));
