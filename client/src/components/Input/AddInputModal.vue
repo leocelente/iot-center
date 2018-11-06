@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="c-overlay c-overlay--visible" @click="close()"></div>
-        <div class="o-modal">
+        <div role="dialog" class="o-modal o-modal--visible">
             <div class="c-card">
                 <header class="c-card__header">
                     <button type="button" class="c-button c-button--close" @click="close()">×</button>

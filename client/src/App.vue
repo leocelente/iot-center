@@ -24,6 +24,7 @@ export default {
   components: { InputList, OutputList, TopMenu },
 
   data() {
+    
     return {
       socket: {}
     }
