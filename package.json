@@ -10,12 +10,12 @@
   "author": "leocelente",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.16.2",
-    "body-parser": "^1.18.1",
+    "axios": "^0.18.1",
+    "body-parser": "^1.19.0",
     "cors": "^2.8.4",
-    "express": "^4.15.4",
-    "mongoose": "^4.11.11",
-    "nodemon": "^1.12.0",
-    "socket.io": "^2.0.3"
+    "express": "^4.17.1",
+    "mongoose": "^5.7.5",
+    "nodemon": "^2.0.2",
+    "socket.io": "^2.3.0"
   }
 }
